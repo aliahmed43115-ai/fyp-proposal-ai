@@ -12,11 +12,18 @@ function NewProposal({ onBack }) {
   const handleGenerate = async () => {
     if (!brief) return alert('Please enter a project brief!');
     setLoading(true);
-    // AI integration agle step mein hogi
-    setTimeout(() => {
-      setProposal(`This is a sample proposal for: ${brief}`);
-      setLoading(false);
-    }, 2000);
+    try {
+      const response = await fetch('http://localhost:5000/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brief, platform, budget })
+      });
+      const data = await response.json();
+      setProposal(data.proposal);
+    } catch (err) {
+      alert('Error connecting to backend!');
+    }
+    setLoading(false);
   };
 
   return (
