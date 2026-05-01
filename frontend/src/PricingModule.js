@@ -2,69 +2,46 @@ import React, { useState } from 'react';
 
 const GOLD = '#C9A84C';
 
-function NewProposal({ onBack }) {
+function PricingModule({ onBack }) {
   const [brief, setBrief] = useState('');
   const [platform, setPlatform] = useState('Upwork');
   const [budget, setBudget] = useState('');
+  const [skills, setSkills] = useState('');
   const [loading, setLoading] = useState(false);
-  const [proposal, setProposal] = useState('');
-  const [file, setFile] = useState(null);
-  const [dragOver, setDragOver] = useState(false);
+  const [result, setResult] = useState('');
 
   const platforms = ['Upwork', 'Fiverr', 'Toptal', 'Direct Client'];
 
-  const handleGenerate = async () => {
-    if (!brief && !file) return alert('Please enter a brief or upload a file!');
+  const handleAnalyze = async () => {
+    if (!brief) return alert('Please enter a project brief!');
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('brief', brief);
-      formData.append('platform', platform);
-      formData.append('budget', budget);
-      if (file) formData.append('file', file);
-
-      const response = await fetch('http://localhost:5000/api/generate', {
+      const response = await fetch('http://localhost:5000/api/pricing', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brief, platform, budget, skills })
       });
       const data = await response.json();
-      setProposal(data.proposal);
+      setResult(data.pricing);
     } catch (err) {
       alert('Error connecting to backend!');
     }
     setLoading(false);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) setFile(droppedFile);
-  };
-
   return (
     <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      width: '100vw',
-      background: '#080808',
-      fontFamily: "'Inter', sans-serif"
+      display: 'flex', minHeight: '100vh', width: '100vw',
+      background: '#080808', fontFamily: "'Inter', sans-serif"
     }}>
 
       {/* Sidebar */}
       <div style={{
-        width: '260px',
-        minHeight: '100vh',
-        background: '#0D0D0D',
+        width: '260px', minHeight: '100vh', background: '#0D0D0D',
         borderRight: '1px solid rgba(201,168,76,0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '32px 0',
-        flexShrink: 0,
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100vh'
+        display: 'flex', flexDirection: 'column',
+        padding: '32px 0', flexShrink: 0,
+        position: 'fixed', left: 0, top: 0, height: '100vh'
       }}>
         <div style={{ padding: '0 28px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -76,11 +53,10 @@ function NewProposal({ onBack }) {
 
         <div style={{ padding: '0 20px', marginBottom: '32px' }}>
           <button onClick={onBack} style={{
-            width: '100%',
-            background: 'rgba(201,168,76,0.08)',
-            border: '1px solid rgba(201,168,76,0.2)',
-            borderRadius: '12px', padding: '13px',
-            color: GOLD, fontWeight: '500', fontSize: '13px', cursor: 'pointer',
+            width: '100%', background: 'rgba(201,168,76,0.08)',
+            border: '1px solid rgba(201,168,76,0.2)', borderRadius: '12px',
+            padding: '13px', color: GOLD, fontWeight: '500',
+            fontSize: '13px', cursor: 'pointer',
           }}>
             ← Back to Dashboard
           </button>
@@ -92,7 +68,8 @@ function NewProposal({ onBack }) {
           </p>
           {platforms.map(p => (
             <div key={p} onClick={() => setPlatform(p)} style={{
-              padding: '10px 14px', borderRadius: '8px', marginBottom: '4px', cursor: 'pointer',
+              padding: '10px 14px', borderRadius: '8px', marginBottom: '4px',
+              cursor: 'pointer',
               background: platform === p ? 'rgba(201,168,76,0.1)' : 'transparent',
               borderLeft: platform === p ? `2px solid ${GOLD}` : '2px solid transparent',
               color: platform === p ? GOLD : '#888',
@@ -104,31 +81,25 @@ function NewProposal({ onBack }) {
         </div>
       </div>
 
-      {/* Main Content — ChatGPT Style Center */}
+      {/* Main */}
       <div style={{
-        marginLeft: '260px',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: '#080808',
-        overflowY: 'auto',
-        minHeight: '100vh',
-        paddingBottom: '60px'
+        marginLeft: '260px', flex: 1, display: 'flex',
+        flexDirection: 'column', alignItems: 'center',
+        background: '#080808', overflowY: 'auto',
+        minHeight: '100vh', paddingBottom: '60px'
       }}>
 
-        {/* Header */}
         <div style={{ width: '100%', maxWidth: '720px', padding: '48px 24px 32px 24px' }}>
           <h1 style={{ color: '#fff', fontSize: '26px', fontWeight: '600', letterSpacing: '-0.5px', marginBottom: '8px' }}>
-            Generate Proposal ✦
+            💰 Pricing Engine
           </h1>
           <p style={{ color: '#aaa', fontSize: '14px', fontWeight: '300' }}>
-            Paste a brief or upload a PDF/DOC file
+            Get AI-powered pricing suggestions for your project
           </p>
         </div>
 
-        {/* Proposal Result — shows ABOVE input like ChatGPT */}
-        {proposal && (
+        {/* Result */}
+        {result && (
           <div style={{ width: '100%', maxWidth: '720px', padding: '0 24px', marginBottom: '32px' }}>
             <div style={{
               background: 'rgba(201,168,76,0.03)',
@@ -137,11 +108,11 @@ function NewProposal({ onBack }) {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ color: GOLD, fontSize: '18px' }}>✦</span>
-                  <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '500' }}>Your Proposal</h3>
+                  <span style={{ color: GOLD, fontSize: '18px' }}>💰</span>
+                  <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '500' }}>Pricing Analysis</h3>
                 </div>
                 <button
-                  onClick={() => navigator.clipboard.writeText(proposal)}
+                  onClick={() => navigator.clipboard.writeText(result)}
                   style={{
                     background: 'rgba(201,168,76,0.1)',
                     border: '1px solid rgba(201,168,76,0.2)',
@@ -156,20 +127,35 @@ function NewProposal({ onBack }) {
                 color: '#ccc', fontSize: '14px', lineHeight: '1.9',
                 fontWeight: '300', whiteSpace: 'pre-wrap'
               }}>
-                {proposal}
+                {result}
               </div>
             </div>
           </div>
         )}
 
-        {/* Input Area — Fixed at bottom like ChatGPT */}
-        <div style={{
-          width: '100%', maxWidth: '720px',
-          padding: '0 24px',
-          position: proposal ? 'relative' : 'relative'
-        }}>
+        {/* Input */}
+        <div style={{ width: '100%', maxWidth: '720px', padding: '0 24px' }}>
 
-          {/* Brief Textarea — ChatGPT style */}
+          {/* Skills */}
+          <div style={{ marginBottom: '16px' }}>
+            <input
+              type="text"
+              placeholder="🛠️ Your skills (e.g. WordPress, React, UI/UX)"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              style={{
+                width: '100%', background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(201,168,76,0.15)',
+                borderRadius: '12px', padding: '14px 18px',
+                color: '#fff', fontSize: '14px', fontWeight: '300',
+                outline: 'none', boxSizing: 'border-box'
+              }}
+              onFocus={(e) => e.target.style.borderColor = GOLD}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(201,168,76,0.15)'}
+            />
+          </div>
+
+          {/* Brief + Generate */}
           <div style={{
             background: 'rgba(255,255,255,0.02)',
             border: '1px solid rgba(201,168,76,0.15)',
@@ -192,38 +178,11 @@ function NewProposal({ onBack }) {
               alignItems: 'center', marginTop: '16px',
               paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)'
             }}>
-              {/* Left side — paperclip + file name */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div
-                  onClick={() => document.getElementById('fileInput').click()}
-                  style={{
-                    cursor: 'pointer',
-                    background: 'rgba(201,168,76,0.08)',
-                    border: '1px solid rgba(201,168,76,0.2)',
-                    borderRadius: '8px', padding: '8px 12px',
-                    display: 'flex', alignItems: 'center', gap: '6px'
-                  }}
-                >
-                  <input
-                    id="fileInput"
-                    type="file"
-                    accept=".pdf,.docx"
-                    style={{ display: 'none' }}
-                    onChange={(e) => setFile(e.target.files[0])}
-                  />
-                  <span style={{ fontSize: '16px' }}>📎</span>
-                  <span style={{ color: GOLD, fontSize: '12px', fontWeight: '400' }}>
-                    {file ? file.name : 'PDF / DOCX'}
-                  </span>
-                </div>
-                <span style={{ color: '#333', fontSize: '12px', fontWeight: '300' }}>
-                  Platform: <span style={{ color: GOLD }}>{platform}</span>
-                </span>
-              </div>
-
-              {/* Right side — Generate button */}
+              <span style={{ color: '#444', fontSize: '12px' }}>
+                Platform: <span style={{ color: GOLD }}>{platform}</span>
+              </span>
               <button
-                onClick={handleGenerate}
+                onClick={handleAnalyze}
                 disabled={loading}
                 style={{
                   background: loading ? 'rgba(201,168,76,0.3)' : `linear-gradient(135deg, ${GOLD}, #E2C06A)`,
@@ -233,15 +192,14 @@ function NewProposal({ onBack }) {
                   boxShadow: loading ? 'none' : '0 4px 20px rgba(201,168,76,0.3)'
                 }}
               >
-                {loading ? '⏳ Generating...' : '✦ Generate'}
+                {loading ? '⏳ Analyzing...' : '💰 Analyze Price'}
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
 
-export default NewProposal;
+export default PricingModule;
